@@ -4,13 +4,14 @@ package azblob
 // Changes may cause incorrect behavior and will be lost if the code is regenerated.
 
 import (
-	"github.com/Azure/azure-pipeline-go/pipeline"
 	"net/url"
+
+	"github.com/Azure/azure-pipeline-go/pipeline"
 )
 
 const (
 	// ServiceVersion specifies the version of the operations used in this package.
-	ServiceVersion = "2018-11-09"
+	ServiceVersion = "2019-02-02"
 )
 
 // managementClient is the base client for Azblob.
