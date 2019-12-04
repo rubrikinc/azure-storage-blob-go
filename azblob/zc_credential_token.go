@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // TokenRefresher represents a callback method that you write; this method is called periodically

@@ -3,7 +3,7 @@ package azblob
 import (
 	"context"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // Credential represent any credential type; it is used to create a credential policy Factory.

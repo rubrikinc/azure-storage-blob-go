@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 	"io/ioutil"
 )
 

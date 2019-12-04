@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // RetryPolicy tells the pipeline what kind of retry policy to use. See the RetryPolicy* constants.

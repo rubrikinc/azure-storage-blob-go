@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/url"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // A BlobURL represents a URL to an Azure Storage blob; the blob may be a block blob, append blob, or page blob.
