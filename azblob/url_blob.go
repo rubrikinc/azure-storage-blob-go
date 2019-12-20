@@ -60,7 +60,7 @@ func (b BlobURL) ToPageBlobURL() PageBlobURL {
 // DownloadBlob reads a range of bytes from a blob. The response also includes the blob's properties and metadata.
 // Passing azblob.CountToEnd (0) for count will download the blob from the offset to the end.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/get-blob.
-func (b BlobURL) Download(ctx context.Context, offset int64, count int64, ac BlobAccessConditions, rangeGetContentMD5 bool) (*DownloadResponse, error) {
+func (b BlobURL) Download(ctx context.Context, offset int64, count int64, ac BlobAccessConditions, rangeGetContentMD5 bool, encryptionKey *string) (*DownloadResponse, error) {
 	var xRangeGetContentMD5 *bool
 	if rangeGetContentMD5 {
 		xRangeGetContentMD5 = &rangeGetContentMD5
