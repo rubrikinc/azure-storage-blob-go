@@ -5,7 +5,7 @@ The Microsoft Azure Storage SDK for Go allows you to build applications that tak
 
 This repository contains the open source Blob SDK for Go. The [File SDK][File SDK] and [Queue SDK][Queue SDK] are also available.
 
-**Rubrik Modification**: We build support for [customer provided encryption key](https://azure.microsoft.com/en-us/blog/customer-provided-keys-with-azure-storage-service-encryption/?cdn=disable) within the Go SDK. This is built on top of branch 0.7.0 as its own branch, customer_encryption_key_070.
+**Rubrik Modification**: We build support for [customer provided encryption key](https://azure.microsoft.com/en-us/blog/customer-provided-keys-with-azure-storage-service-encryption/?cdn=disable) within the Go SDK. This is built on top of branch 0.7.0 as its own branch, customer_encryption_key_070. This is the dev branch. 
 
 ## Features
 * Blob Storage
