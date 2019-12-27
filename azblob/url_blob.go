@@ -60,16 +60,20 @@ func (b BlobURL) ToPageBlobURL() PageBlobURL {
 // DownloadBlob reads a range of bytes from a blob. The response also includes the blob's properties and metadata.
 // Passing azblob.CountToEnd (0) for count will download the blob from the offset to the end.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/get-blob.
-func (b BlobURL) Download(ctx context.Context, offset int64, count int64, ac BlobAccessConditions, rangeGetContentMD5 bool) (*DownloadResponse, error) {
+func (b BlobURL) Download(ctx context.Context, offset int64, count int64, ac BlobAccessConditions, rangeGetContentMD5 bool, encKey CustomerEncryptionKey) (*DownloadResponse, error) {
 	var xRangeGetContentMD5 *bool
 	if rangeGetContentMD5 {
 		xRangeGetContentMD5 = &rangeGetContentMD5
 	}
 	ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag := ac.ModifiedAccessConditions.pointers()
+	encHeaders, err := newBlobEncryptionHeader(encKey)
+	if err != nil {
+		return nil, err
+	}
 	dr, err := b.blobClient.Download(ctx, nil, nil,
 		httpRange{offset: offset, count: count}.pointers(),
 		ac.LeaseAccessConditions.pointers(), xRangeGetContentMD5,
-		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil)
+		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +112,14 @@ func (b BlobURL) SetTier(ctx context.Context, tier AccessTierType, lac LeaseAcce
 
 // GetBlobProperties returns the blob's properties.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/get-blob-properties.
-func (b BlobURL) GetProperties(ctx context.Context, ac BlobAccessConditions) (*BlobGetPropertiesResponse, error) {
+func (b BlobURL) GetProperties(ctx context.Context, ac BlobAccessConditions, encKey CustomerEncryptionKey) (*BlobGetPropertiesResponse, error) {
 	ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag := ac.ModifiedAccessConditions.pointers()
+	encHeaders, err := newBlobEncryptionHeader(encKey)
+	if err != nil {
+		return nil, err
+	}
 	return b.blobClient.GetProperties(ctx, nil, nil, ac.LeaseAccessConditions.pointers(),
-		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil)
+		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil, encHeaders)
 }
 
 // SetBlobHTTPHeaders changes a blob's HTTP headers.
@@ -126,10 +134,14 @@ func (b BlobURL) SetHTTPHeaders(ctx context.Context, h BlobHTTPHeaders, ac BlobA
 
 // SetBlobMetadata changes a blob's metadata.
 // https://docs.microsoft.com/rest/api/storageservices/set-blob-metadata.
-func (b BlobURL) SetMetadata(ctx context.Context, metadata Metadata, ac BlobAccessConditions) (*BlobSetMetadataResponse, error) {
+func (b BlobURL) SetMetadata(ctx context.Context, metadata Metadata, ac BlobAccessConditions, encKey CustomerEncryptionKey) (*BlobSetMetadataResponse, error) {
 	ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag := ac.ModifiedAccessConditions.pointers()
+	encHeaders, err := newBlobEncryptionHeader(encKey)
+	if err != nil {
+		return nil, err
+	}
 	return b.blobClient.SetMetadata(ctx, nil, metadata, ac.LeaseAccessConditions.pointers(),
-		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil)
+		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil, encHeaders)
 }
 
 // CreateSnapshot creates a read-only snapshot of a blob.

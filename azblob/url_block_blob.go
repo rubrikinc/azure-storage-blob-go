@@ -55,9 +55,13 @@ func (bb BlockBlobURL) WithSnapshot(snapshot string) BlockBlobURL {
 // This method panics if the stream is not at position 0.
 // Note that the http client closes the body stream after the request is sent to the service.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/put-blob.
-func (bb BlockBlobURL) Upload(ctx context.Context, body io.ReadSeeker, h BlobHTTPHeaders, metadata Metadata, ac BlobAccessConditions) (*BlockBlobUploadResponse, error) {
+func (bb BlockBlobURL) Upload(ctx context.Context, body io.ReadSeeker, h BlobHTTPHeaders, metadata Metadata, ac BlobAccessConditions, encKey CustomerEncryptionKey) (*BlockBlobUploadResponse, error) {
 	ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag := ac.ModifiedAccessConditions.pointers()
 	count, err := validateSeekableStreamAt0AndGetCount(body)
+	if err != nil {
+		return nil, err
+	}
+	encHeaders, err := newBlobEncryptionHeader(encKey)
 	if err != nil {
 		return nil, err
 	}
@@ -65,18 +69,22 @@ func (bb BlockBlobURL) Upload(ctx context.Context, body io.ReadSeeker, h BlobHTT
 		&h.ContentType, &h.ContentEncoding, &h.ContentLanguage, h.ContentMD5,
 		&h.CacheControl, metadata, ac.LeaseAccessConditions.pointers(),
 		&h.ContentDisposition, ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag,
-		nil)
+		nil, encHeaders)
 }
 
 // StageBlock uploads the specified block to the block blob's "staging area" to be later committed by a call to CommitBlockList.
 // Note that the http client closes the body stream after the request is sent to the service.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/put-block.
-func (bb BlockBlobURL) StageBlock(ctx context.Context, base64BlockID string, body io.ReadSeeker, ac LeaseAccessConditions, transactionalMD5 []byte) (*BlockBlobStageBlockResponse, error) {
+func (bb BlockBlobURL) StageBlock(ctx context.Context, base64BlockID string, body io.ReadSeeker, ac LeaseAccessConditions, transactionalMD5 []byte, encKey CustomerEncryptionKey) (*BlockBlobStageBlockResponse, error) {
 	count, err := validateSeekableStreamAt0AndGetCount(body)
 	if err != nil {
 		return nil, err
 	}
-	return bb.bbClient.StageBlock(ctx, base64BlockID, count, body, transactionalMD5, nil, ac.pointers(), nil)
+	encHeaders, err := newBlobEncryptionHeader(encKey)
+	if err != nil {
+		return nil, err
+	}
+	return bb.bbClient.StageBlock(ctx, base64BlockID, count, body, transactionalMD5, nil, ac.pointers(), nil, encHeaders)
 }
 
 // StageBlockFromURL copies the specified block from a source URL to the block blob's "staging area" to be later committed by a call to CommitBlockList.
@@ -94,18 +102,26 @@ func (bb BlockBlobURL) StageBlockFromURL(ctx context.Context, base64BlockID stri
 // blocks together. Any blocks not specified in the block list and permanently deleted.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/put-block-list.
 func (bb BlockBlobURL) CommitBlockList(ctx context.Context, base64BlockIDs []string, h BlobHTTPHeaders,
-	metadata Metadata, ac BlobAccessConditions) (*BlockBlobCommitBlockListResponse, error) {
+	metadata Metadata, ac BlobAccessConditions, encKey CustomerEncryptionKey) (*BlockBlobCommitBlockListResponse, error) {
 	ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag := ac.ModifiedAccessConditions.pointers()
+	encHeaders, err := newBlobEncryptionHeader(encKey)
+	if err != nil {
+		return nil, err
+	}
 	return bb.bbClient.CommitBlockList(ctx, BlockLookupList{Latest: base64BlockIDs}, nil,
 		&h.CacheControl, &h.ContentType, &h.ContentEncoding, &h.ContentLanguage, h.ContentMD5,
 		metadata, ac.LeaseAccessConditions.pointers(), &h.ContentDisposition,
-		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil)
+		ifModifiedSince, ifUnmodifiedSince, ifMatchETag, ifNoneMatchETag, nil, encHeaders)
 }
 
 // GetBlockList returns the list of blocks that have been uploaded as part of a block blob using the specified block list filter.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/get-block-list.
-func (bb BlockBlobURL) GetBlockList(ctx context.Context, listType BlockListType, ac LeaseAccessConditions) (*BlockList, error) {
-	return bb.bbClient.GetBlockList(ctx, listType, nil, nil, ac.pointers(), nil)
+func (bb BlockBlobURL) GetBlockList(ctx context.Context, listType BlockListType, ac LeaseAccessConditions, encKey CustomerEncryptionKey) (*BlockList, error) {
+	encHeaders, err := newBlobEncryptionHeader(encKey)
+	if err != nil {
+		return nil, err
+	}
+	return bb.bbClient.GetBlockList(ctx, listType, nil, nil, ac.pointers(), nil, encHeaders)
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////

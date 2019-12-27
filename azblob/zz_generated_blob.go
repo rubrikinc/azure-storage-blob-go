@@ -625,14 +625,14 @@ func (client blobClient) deleteResponder(resp pipeline.Response) (pipeline.Respo
 // an ETag value to operate only on blobs with a matching value. ifNoneMatch is specify an ETag value to operate only
 // on blobs without a matching value. requestID is provides a client-generated, opaque value with a 1 KB character
 // limit that is recorded in the analytics logs when storage analytics logging is enabled.
-func (client blobClient) Download(ctx context.Context, snapshot *string, timeout *int32, rangeParameter *string, leaseID *string, rangeGetContentMD5 *bool, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (*downloadResponse, error) {
+func (client blobClient) Download(ctx context.Context, snapshot *string, timeout *int32, rangeParameter *string, leaseID *string, rangeGetContentMD5 *bool, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (*downloadResponse, error) {
 	if err := validate([]validation{
 		{targetValue: timeout,
 			constraints: []constraint{{target: "timeout", name: null, rule: false,
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.downloadPreparer(snapshot, timeout, rangeParameter, leaseID, rangeGetContentMD5, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID)
+	req, err := client.downloadPreparer(snapshot, timeout, rangeParameter, leaseID, rangeGetContentMD5, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -644,7 +644,7 @@ func (client blobClient) Download(ctx context.Context, snapshot *string, timeout
 }
 
 // downloadPreparer prepares the Download request.
-func (client blobClient) downloadPreparer(snapshot *string, timeout *int32, rangeParameter *string, leaseID *string, rangeGetContentMD5 *bool, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (pipeline.Request, error) {
+func (client blobClient) downloadPreparer(snapshot *string, timeout *int32, rangeParameter *string, leaseID *string, rangeGetContentMD5 *bool, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("GET", client.url, nil)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -682,6 +682,7 @@ func (client blobClient) downloadPreparer(snapshot *string, timeout *int32, rang
 	if requestID != nil {
 		req.Header.Set("x-ms-client-request-id", *requestID)
 	}
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 
@@ -747,14 +748,14 @@ func (client blobClient) getAccountInfoResponder(resp pipeline.Response) (pipeli
 // blobs with a matching value. ifNoneMatch is specify an ETag value to operate only on blobs without a matching value.
 // requestID is provides a client-generated, opaque value with a 1 KB character limit that is recorded in the analytics
 // logs when storage analytics logging is enabled.
-func (client blobClient) GetProperties(ctx context.Context, snapshot *string, timeout *int32, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (*BlobGetPropertiesResponse, error) {
+func (client blobClient) GetProperties(ctx context.Context, snapshot *string, timeout *int32, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (*BlobGetPropertiesResponse, error) {
 	if err := validate([]validation{
 		{targetValue: timeout,
 			constraints: []constraint{{target: "timeout", name: null, rule: false,
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.getPropertiesPreparer(snapshot, timeout, leaseID, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID)
+	req, err := client.getPropertiesPreparer(snapshot, timeout, leaseID, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -766,7 +767,7 @@ func (client blobClient) GetProperties(ctx context.Context, snapshot *string, ti
 }
 
 // getPropertiesPreparer prepares the GetProperties request.
-func (client blobClient) getPropertiesPreparer(snapshot *string, timeout *int32, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (pipeline.Request, error) {
+func (client blobClient) getPropertiesPreparer(snapshot *string, timeout *int32, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("HEAD", client.url, nil)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -798,6 +799,7 @@ func (client blobClient) getPropertiesPreparer(snapshot *string, timeout *int32,
 	if requestID != nil {
 		req.Header.Set("x-ms-client-request-id", *requestID)
 	}
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 
@@ -1076,14 +1078,14 @@ func (client blobClient) setHTTPHeadersResponder(resp pipeline.Response) (pipeli
 // to operate only on blobs with a matching value. ifNoneMatch is specify an ETag value to operate only on blobs
 // without a matching value. requestID is provides a client-generated, opaque value with a 1 KB character limit that is
 // recorded in the analytics logs when storage analytics logging is enabled.
-func (client blobClient) SetMetadata(ctx context.Context, timeout *int32, metadata map[string]string, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (*BlobSetMetadataResponse, error) {
+func (client blobClient) SetMetadata(ctx context.Context, timeout *int32, metadata map[string]string, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (*BlobSetMetadataResponse, error) {
 	if err := validate([]validation{
 		{targetValue: timeout,
 			constraints: []constraint{{target: "timeout", name: null, rule: false,
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.setMetadataPreparer(timeout, metadata, leaseID, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID)
+	req, err := client.setMetadataPreparer(timeout, metadata, leaseID, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -1095,7 +1097,7 @@ func (client blobClient) SetMetadata(ctx context.Context, timeout *int32, metada
 }
 
 // setMetadataPreparer prepares the SetMetadata request.
-func (client blobClient) setMetadataPreparer(timeout *int32, metadata map[string]string, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (pipeline.Request, error) {
+func (client blobClient) setMetadataPreparer(timeout *int32, metadata map[string]string, leaseID *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("PUT", client.url, nil)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -1130,6 +1132,7 @@ func (client blobClient) setMetadataPreparer(timeout *int32, metadata map[string
 	if requestID != nil {
 		req.Header.Set("x-ms-client-request-id", *requestID)
 	}
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 

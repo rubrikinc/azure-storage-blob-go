@@ -56,14 +56,14 @@ func newBlockBlobClient(url url.URL, p pipeline.Pipeline) blockBlobClient {
 // ifNoneMatch is specify an ETag value to operate only on blobs without a matching value. requestID is provides a
 // client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage
 // analytics logging is enabled.
-func (client blockBlobClient) CommitBlockList(ctx context.Context, blocks BlockLookupList, timeout *int32, blobCacheControl *string, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (*BlockBlobCommitBlockListResponse, error) {
+func (client blockBlobClient) CommitBlockList(ctx context.Context, blocks BlockLookupList, timeout *int32, blobCacheControl *string, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (*BlockBlobCommitBlockListResponse, error) {
 	if err := validate([]validation{
 		{targetValue: timeout,
 			constraints: []constraint{{target: "timeout", name: null, rule: false,
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.commitBlockListPreparer(blocks, timeout, blobCacheControl, blobContentType, blobContentEncoding, blobContentLanguage, blobContentMD5, metadata, leaseID, blobContentDisposition, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID)
+	req, err := client.commitBlockListPreparer(blocks, timeout, blobCacheControl, blobContentType, blobContentEncoding, blobContentLanguage, blobContentMD5, metadata, leaseID, blobContentDisposition, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (client blockBlobClient) CommitBlockList(ctx context.Context, blocks BlockL
 }
 
 // commitBlockListPreparer prepares the CommitBlockList request.
-func (client blockBlobClient) commitBlockListPreparer(blocks BlockLookupList, timeout *int32, blobCacheControl *string, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (pipeline.Request, error) {
+func (client blockBlobClient) commitBlockListPreparer(blocks BlockLookupList, timeout *int32, blobCacheControl *string, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("PUT", client.url, nil)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -137,6 +137,7 @@ func (client blockBlobClient) commitBlockListPreparer(blocks BlockLookupList, ti
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to set request body")
 	}
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 
@@ -163,14 +164,14 @@ func (client blockBlobClient) commitBlockListResponder(resp pipeline.Response) (
 // Timeouts for Blob Service Operations.</a> leaseID is if specified, the operation only succeeds if the resource's
 // lease is active and matches this ID. requestID is provides a client-generated, opaque value with a 1 KB character
 // limit that is recorded in the analytics logs when storage analytics logging is enabled.
-func (client blockBlobClient) GetBlockList(ctx context.Context, listType BlockListType, snapshot *string, timeout *int32, leaseID *string, requestID *string) (*BlockList, error) {
+func (client blockBlobClient) GetBlockList(ctx context.Context, listType BlockListType, snapshot *string, timeout *int32, leaseID *string, requestID *string, encHeaders *blobEncryptionHeaders) (*BlockList, error) {
 	if err := validate([]validation{
 		{targetValue: timeout,
 			constraints: []constraint{{target: "timeout", name: null, rule: false,
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.getBlockListPreparer(listType, snapshot, timeout, leaseID, requestID)
+	req, err := client.getBlockListPreparer(listType, snapshot, timeout, leaseID, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +183,7 @@ func (client blockBlobClient) GetBlockList(ctx context.Context, listType BlockLi
 }
 
 // getBlockListPreparer prepares the GetBlockList request.
-func (client blockBlobClient) getBlockListPreparer(listType BlockListType, snapshot *string, timeout *int32, leaseID *string, requestID *string) (pipeline.Request, error) {
+func (client blockBlobClient) getBlockListPreparer(listType BlockListType, snapshot *string, timeout *int32, leaseID *string, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("GET", client.url, nil)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -204,6 +205,7 @@ func (client blockBlobClient) getBlockListPreparer(listType BlockListType, snaps
 	if requestID != nil {
 		req.Header.Set("x-ms-client-request-id", *requestID)
 	}
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 
@@ -244,7 +246,7 @@ func (client blockBlobClient) getBlockListResponder(resp pipeline.Response) (pip
 // Timeouts for Blob Service Operations.</a> leaseID is if specified, the operation only succeeds if the resource's
 // lease is active and matches this ID. requestID is provides a client-generated, opaque value with a 1 KB character
 // limit that is recorded in the analytics logs when storage analytics logging is enabled.
-func (client blockBlobClient) StageBlock(ctx context.Context, blockID string, contentLength int64, body io.ReadSeeker, transactionalContentMD5 []byte, timeout *int32, leaseID *string, requestID *string) (*BlockBlobStageBlockResponse, error) {
+func (client blockBlobClient) StageBlock(ctx context.Context, blockID string, contentLength int64, body io.ReadSeeker, transactionalContentMD5 []byte, timeout *int32, leaseID *string, requestID *string, encHeaders *blobEncryptionHeaders) (*BlockBlobStageBlockResponse, error) {
 	if err := validate([]validation{
 		{targetValue: body,
 			constraints: []constraint{{target: "body", name: null, rule: true, chain: nil}}},
@@ -253,7 +255,7 @@ func (client blockBlobClient) StageBlock(ctx context.Context, blockID string, co
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.stageBlockPreparer(blockID, contentLength, body, transactionalContentMD5, timeout, leaseID, requestID)
+	req, err := client.stageBlockPreparer(blockID, contentLength, body, transactionalContentMD5, timeout, leaseID, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -265,7 +267,7 @@ func (client blockBlobClient) StageBlock(ctx context.Context, blockID string, co
 }
 
 // stageBlockPreparer prepares the StageBlock request.
-func (client blockBlobClient) stageBlockPreparer(blockID string, contentLength int64, body io.ReadSeeker, transactionalContentMD5 []byte, timeout *int32, leaseID *string, requestID *string) (pipeline.Request, error) {
+func (client blockBlobClient) stageBlockPreparer(blockID string, contentLength int64, body io.ReadSeeker, transactionalContentMD5 []byte, timeout *int32, leaseID *string, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("PUT", client.url, body)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -288,6 +290,7 @@ func (client blockBlobClient) stageBlockPreparer(blockID string, contentLength i
 	if requestID != nil {
 		req.Header.Set("x-ms-client-request-id", *requestID)
 	}
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 
@@ -420,7 +423,7 @@ func (client blockBlobClient) stageBlockFromURLResponder(resp pipeline.Response)
 // ifNoneMatch is specify an ETag value to operate only on blobs without a matching value. requestID is provides a
 // client-generated, opaque value with a 1 KB character limit that is recorded in the analytics logs when storage
 // analytics logging is enabled.
-func (client blockBlobClient) Upload(ctx context.Context, body io.ReadSeeker, contentLength int64, timeout *int32, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, blobCacheControl *string, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (*BlockBlobUploadResponse, error) {
+func (client blockBlobClient) Upload(ctx context.Context, body io.ReadSeeker, contentLength int64, timeout *int32, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, blobCacheControl *string, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (*BlockBlobUploadResponse, error) {
 	if err := validate([]validation{
 		{targetValue: body,
 			constraints: []constraint{{target: "body", name: null, rule: true, chain: nil}}},
@@ -429,7 +432,7 @@ func (client blockBlobClient) Upload(ctx context.Context, body io.ReadSeeker, co
 				chain: []constraint{{target: "timeout", name: inclusiveMinimum, rule: 0, chain: nil}}}}}}); err != nil {
 		return nil, err
 	}
-	req, err := client.uploadPreparer(body, contentLength, timeout, blobContentType, blobContentEncoding, blobContentLanguage, blobContentMD5, blobCacheControl, metadata, leaseID, blobContentDisposition, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID)
+	req, err := client.uploadPreparer(body, contentLength, timeout, blobContentType, blobContentEncoding, blobContentLanguage, blobContentMD5, blobCacheControl, metadata, leaseID, blobContentDisposition, ifModifiedSince, ifUnmodifiedSince, ifMatch, ifNoneMatch, requestID, encHeaders)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +444,7 @@ func (client blockBlobClient) Upload(ctx context.Context, body io.ReadSeeker, co
 }
 
 // uploadPreparer prepares the Upload request.
-func (client blockBlobClient) uploadPreparer(body io.ReadSeeker, contentLength int64, timeout *int32, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, blobCacheControl *string, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string) (pipeline.Request, error) {
+func (client blockBlobClient) uploadPreparer(body io.ReadSeeker, contentLength int64, timeout *int32, blobContentType *string, blobContentEncoding *string, blobContentLanguage *string, blobContentMD5 []byte, blobCacheControl *string, metadata map[string]string, leaseID *string, blobContentDisposition *string, ifModifiedSince *time.Time, ifUnmodifiedSince *time.Time, ifMatch *ETag, ifNoneMatch *ETag, requestID *string, encHeaders *blobEncryptionHeaders) (pipeline.Request, error) {
 	req, err := pipeline.NewRequest("PUT", client.url, body)
 	if err != nil {
 		return req, pipeline.NewError(err, "failed to create request")
@@ -495,6 +498,7 @@ func (client blockBlobClient) uploadPreparer(body io.ReadSeeker, contentLength i
 		req.Header.Set("x-ms-client-request-id", *requestID)
 	}
 	req.Header.Set("x-ms-blob-type", "BlockBlob")
+	setEncryptionHeaders(req, encHeaders)
 	return req, nil
 }
 

@@ -86,7 +86,7 @@ func UploadBufferToBlockBlob(ctx context.Context, b []byte,
 		if o.Progress != nil {
 			body = pipeline.NewRequestBodyProgress(body, o.Progress)
 		}
-		return blockBlobURL.Upload(ctx, body, o.BlobHTTPHeaders, o.Metadata, o.AccessConditions)
+		return blockBlobURL.Upload(ctx, body, o.BlobHTTPHeaders, o.Metadata, o.AccessConditions, nil)
 	}
 
 	var numBlocks = uint16(((bufferSize - 1) / o.BlockSize) + 1)
@@ -122,7 +122,7 @@ func UploadBufferToBlockBlob(ctx context.Context, b []byte,
 			// Block IDs are unique values to avoid issue if 2+ clients are uploading blocks
 			// at the same time causing PutBlockList to get a mix of blocks from all the clients.
 			blockIDList[blockNum] = base64.StdEncoding.EncodeToString(newUUID().bytes())
-			_, err := blockBlobURL.StageBlock(ctx, blockIDList[blockNum], body, o.AccessConditions.LeaseAccessConditions, nil)
+			_, err := blockBlobURL.StageBlock(ctx, blockIDList[blockNum], body, o.AccessConditions.LeaseAccessConditions, nil, nil)
 			return err
 		},
 	})
@@ -130,7 +130,7 @@ func UploadBufferToBlockBlob(ctx context.Context, b []byte,
 		return nil, err
 	}
 	// All put blocks were successful, call Put Block List to finalize the blob
-	return blockBlobURL.CommitBlockList(ctx, blockIDList, o.BlobHTTPHeaders, o.Metadata, o.AccessConditions)
+	return blockBlobURL.CommitBlockList(ctx, blockIDList, o.BlobHTTPHeaders, o.Metadata, o.AccessConditions, nil)
 }
 
 // UploadFileToBlockBlob uploads a file in blocks to a block blob.
@@ -186,7 +186,7 @@ func downloadBlobToBuffer(ctx context.Context, blobURL BlobURL, offset int64, co
 			count = initialDownloadResponse.ContentLength() - offset // if we have the length, use it
 		} else {
 			// If we don't have the length at all, get it
-			dr, err := blobURL.Download(ctx, 0, CountToEnd, o.AccessConditions, false)
+			dr, err := blobURL.Download(ctx, 0, CountToEnd, o.AccessConditions, false, nil)
 			if err != nil {
 				return err
 			}
@@ -204,7 +204,7 @@ func downloadBlobToBuffer(ctx context.Context, blobURL BlobURL, offset int64, co
 		ChunkSize:     o.BlockSize,
 		Parallelism:   o.Parallelism,
 		Operation: func(chunkStart int64, count int64, ctx context.Context) error {
-			dr, err := blobURL.Download(ctx, chunkStart+offset, count, o.AccessConditions, false)
+			dr, err := blobURL.Download(ctx, chunkStart+offset, count, o.AccessConditions, false, nil)
 			if err != nil {
 				return err
 			}
@@ -250,7 +250,7 @@ func DownloadBlobToFile(ctx context.Context, blobURL BlobURL, offset int64, coun
 
 	if count == CountToEnd {
 		// Try to get Azure blob's size
-		props, err := blobURL.GetProperties(ctx, o.AccessConditions)
+		props, err := blobURL.GetProperties(ctx, o.AccessConditions, nil)
 		if err != nil {
 			return err
 		}
@@ -402,7 +402,7 @@ func (t *uploadStreamToBlockBlobOptions) chunk(ctx context.Context, num uint32, 
 		return startVal, nil
 	})
 	blockID := newUuidBlockID(t.blockIDPrefix).WithBlockNumber(num).ToBase64()
-	_, err := t.b.StageBlock(ctx, blockID, bytes.NewReader(buffer), LeaseAccessConditions{}, nil)
+	_, err := t.b.StageBlock(ctx, blockID, bytes.NewReader(buffer), LeaseAccessConditions{}, nil, nil)
 	return err
 }
 
@@ -412,7 +412,7 @@ func (t *uploadStreamToBlockBlobOptions) end(ctx context.Context) (interface{}, 
 	if t.maxBlockNum == 0 && len(t.firstBlock) != t.o.BufferSize {
 		// If whole payload fits in 1 block (block #0), upload it with 1 I/O operation
 		return t.b.Upload(ctx, bytes.NewReader(t.firstBlock),
-			t.o.BlobHTTPHeaders, t.o.Metadata, t.o.AccessConditions)
+			t.o.BlobHTTPHeaders, t.o.Metadata, t.o.AccessConditions, nil)
 	}
 	// Multiple blocks staged, commit them all now
 	blockID := newUuidBlockID(t.blockIDPrefix)
@@ -420,7 +420,7 @@ func (t *uploadStreamToBlockBlobOptions) end(ctx context.Context) (interface{}, 
 	for bn := uint32(0); bn <= t.maxBlockNum; bn++ {
 		blockIDs[bn] = blockID.WithBlockNumber(bn).ToBase64()
 	}
-	return t.b.CommitBlockList(ctx, blockIDs, t.o.BlobHTTPHeaders, t.o.Metadata, t.o.AccessConditions)
+	return t.b.CommitBlockList(ctx, blockIDs, t.o.BlobHTTPHeaders, t.o.Metadata, t.o.AccessConditions, nil)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
