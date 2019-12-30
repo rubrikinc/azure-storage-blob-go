@@ -12,7 +12,7 @@ const (
 	encryptionAlgorithm = "AES256"
 )
 
-// CustomerEncryptionKey is AES265 encryption key for azure customer provided
+// CustomerEncryptionKey is AES256 encryption key for azure customer provided
 // encryption key feature. If it is nil, it means that customer encryption keys
 // will not be used.
 type CustomerEncryptionKey []byte
@@ -26,7 +26,8 @@ func newInvalidAES256KeyLength(length int) InvalidAES256KeyLength {
 }
 
 // blobEncryptionHeaders includes the http headers needed for using Customer
-// provided encryption.
+// provided encryption. These are base64 encoded as specified here
+// https://azure.microsoft.com/en-us/blog/customer-provided-keys-with-azure-storage-service-encryption/
 type blobEncryptionHeaders struct {
 	key     string
 	keySha2 string
