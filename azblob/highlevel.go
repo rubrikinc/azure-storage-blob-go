@@ -208,7 +208,7 @@ func downloadBlobToBuffer(ctx context.Context, blobURL BlobURL, offset int64, co
 			if err != nil {
 				return err
 			}
-			body := dr.Body(o.RetryReaderOptionsPerBlock)
+			body := dr.Body(o.RetryReaderOptionsPerBlock, nil)
 			if o.Progress != nil {
 				rangeProgress := int64(0)
 				body = pipeline.NewResponseBodyProgress(
