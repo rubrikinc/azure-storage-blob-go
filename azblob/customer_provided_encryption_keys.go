@@ -34,8 +34,8 @@ type blobEncryptionHeaders struct {
 }
 
 // newBlobEncryptionHeader creates a new blobEncryptionHeaders. A nil key is
-// is a valid input and indicates that this type of encryption won't be used.
-// A non-nil key must have length 32.
+// a valid input and indicates that this type of encryption won't be used. A
+// non-nil key must have length 32.
 func newBlobEncryptionHeader(key []byte) (*blobEncryptionHeaders, error) {
 	if key == nil {
 		return nil, nil
