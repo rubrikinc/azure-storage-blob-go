@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 	"net/http"
+
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 func init() {
@@ -57,7 +58,7 @@ func (e *storageError) Error() string {
 	fmt.Fprintf(b, "Description=%s, Details: ", e.description)
 	// Note: The following prints out all the headers of the request that
 	// had errored out. This is usually unnecessary and had previously caused
-	// overload for the logging infrastructure. 
+	// overload for the logging infrastructure.
 
 	//if len(e.details) == 0 {
 	//	b.WriteString("(none)\n")
