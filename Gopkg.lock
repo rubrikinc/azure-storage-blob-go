@@ -110,12 +110,12 @@
   revision = "91bb50d981495aef1c208d31be3d77d904384f20"
 
 [[projects]]
-  digest = "1:602649ff074ccee9273e1d3b25c4069f13a70fa0c232957c7d68a6f02fb7a9ea"
+  branch = "rubrik_branch_encryption"
+  digest = "1:af243c71f6c15ff22f3fede66824a94c227b9d174def26b32700cd00c1d6daa7"
   name = "github.com/rubrikinc/azure-pipeline-go"
   packages = ["pipeline"]
   pruneopts = "UT"
-  revision = "232aee85e8e3a6223a11c0943f7df2ae0fac00e4"
-  version = "v0.2.2"
+  revision = "060c7bca37f73a864d4669d7cf8d233d36d00d85"
 
 [[projects]]
   digest = "1:4c93890bbbb5016505e856cb06b5c5a2ff5b7217584d33f2a9071ebef4b5d473"

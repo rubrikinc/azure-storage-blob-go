@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/rubrikinc/azure-pipeline-go"
-  version = "0.2.1"
+  branch = "rubrik_branch_encryption"
 
 [[constraint]]
   branch = "v1"
