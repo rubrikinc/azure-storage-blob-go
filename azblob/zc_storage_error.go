@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"sort"
 
 	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
@@ -57,22 +56,26 @@ func (e *storageError) Error() string {
 	b := &bytes.Buffer{}
 	fmt.Fprintf(b, "===== RESPONSE ERROR (ServiceCode=%s) =====\n", e.serviceCode)
 	fmt.Fprintf(b, "Description=%s, Details: ", e.description)
-	if len(e.details) == 0 {
-		b.WriteString("(none)\n")
-	} else {
-		b.WriteRune('\n')
-		keys := make([]string, 0, len(e.details))
-		// Alphabetize the details
-		for k := range e.details {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			fmt.Fprintf(b, "   %s: %+v\n", k, e.details[k])
-		}
-	}
-	req := pipeline.Request{Request: e.response.Request}.Copy() // Make a copy of the response's request
-	pipeline.WriteRequestWithResponse(b, prepareRequestForLogging(req), e.response, nil)
+	// Note: The following prints out all the headers of the request that
+	// had errored out. This is usually unnecessary and had previously caused
+	// overload for the logging infrastructure.
+
+	//if len(e.details) == 0 {
+	//	b.WriteString("(none)\n")
+	//} else {
+	//	b.WriteRune('\n')
+	//	keys := make([]string, 0, len(e.details))
+	//	// Alphabetize the details
+	//	for k := range e.details {
+	//		keys = append(keys, k)
+	//	}
+	//	sort.Strings(keys)
+	//	for _, k := range keys {
+	//		fmt.Fprintf(b, "   %s: %+v\n", k, e.details[k])
+	//	}
+	//}
+	//req := pipeline.Request{Request: e.response.Request}.Copy() // Make a copy of the response's request
+	//pipeline.WriteRequestWithResponse(b, prepareRequestForLogging(req), e.response, nil)
 	return e.ErrorNode.Error(b.String())
 }
 
