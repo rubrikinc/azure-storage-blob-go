@@ -1,8 +1,9 @@
-module github.com/Azure/azure-storage-blob-go
+module github.com/rubrikinc/azure-storage-blob-go
+
+go 1.14
 
 require (
-	github.com/Azure/azure-pipeline-go v0.2.1
-	github.com/Azure/go-autorest/autorest/adal v0.8.0
-	github.com/kr/pretty v0.1.0 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
+	github.com/Azure/go-autorest/autorest/adal v0.9.10
+	github.com/rubrikinc/azure-pipeline-go v0.2.3-0.20210104222442-47bfb9ed4521
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
 )
