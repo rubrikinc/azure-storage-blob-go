@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/Azure/azure-storage-blob-go/azblob"
+	"github.com/rubrikinc/azure-storage-blob-go/azblob"
 
 	"bytes"
 

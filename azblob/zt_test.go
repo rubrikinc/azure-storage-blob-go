@@ -20,7 +20,7 @@ import (
 	"math/rand"
 
 	"github.com/rubrikinc/azure-pipeline-go/pipeline"
-	"github.com/Azure/azure-storage-blob-go/azblob"
+	"github.com/rubrikinc/azure-storage-blob-go/azblob"
 	"github.com/Azure/go-autorest/autorest/adal"
 )
 
