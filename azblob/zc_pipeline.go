@@ -1,7 +1,7 @@
 package azblob
 
 import (
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // PipelineOptions is used to configure a request policy pipeline's retry policy and logging.

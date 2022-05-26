@@ -19,7 +19,7 @@ import (
 
 	"github.com/Azure/go-autorest/autorest/adal"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // https://godoc.org/github.com/fluhus/godoc-tricks

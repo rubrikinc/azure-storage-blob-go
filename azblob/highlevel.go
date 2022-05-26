@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 )
 
 // CommonResponse returns the headers common to all blob REST API responses.

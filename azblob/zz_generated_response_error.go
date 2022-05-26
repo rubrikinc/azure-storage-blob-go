@@ -6,7 +6,7 @@ package azblob
 import (
 	"bytes"
 	"fmt"
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 	"net"
 	"net/http"
 )

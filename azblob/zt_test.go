@@ -19,7 +19,7 @@ import (
 
 	chk "gopkg.in/check.v1"
 
-	"github.com/Azure/azure-pipeline-go/pipeline"
+	"github.com/rubrikinc/azure-pipeline-go/pipeline"
 	"github.com/Azure/go-autorest/autorest/adal"
 )
 
