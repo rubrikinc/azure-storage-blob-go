@@ -3,7 +3,7 @@ package azblob_test
 import (
 	"context"
 
-	"github.com/Azure/azure-storage-blob-go/2016-05-31/azblob"
+	"github.com/rubrikinc/azure-storage-blob-go/2016-05-31/azblob"
 	chk "gopkg.in/check.v1" // go get gopkg.in/check.v1
 )
 

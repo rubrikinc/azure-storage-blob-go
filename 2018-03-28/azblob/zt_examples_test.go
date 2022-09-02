@@ -8,16 +8,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 	"time"
 
-	"math/rand"
-
 	"github.com/Azure/azure-pipeline-go/pipeline"
-	"github.com/Azure/azure-storage-blob-go/2018-03-28/azblob"
+	"github.com/rubrikinc/azure-storage-blob-go/2018-03-28/azblob"
 )
 
 // https://godoc.org/github.com/fluhus/godoc-tricks

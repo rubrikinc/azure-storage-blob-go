@@ -8,8 +8,8 @@ import (
 	"net"
 	"net/http"
 
+	"github.com/rubrikinc/azure-storage-blob-go/2018-03-28/azblob"
 	chk "gopkg.in/check.v1"
-	"github.com/Azure/azure-storage-blob-go/2018-03-28/azblob"
 )
 
 // Testings for RetryReader
