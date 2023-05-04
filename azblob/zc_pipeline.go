@@ -18,6 +18,9 @@ type PipelineOptions struct {
 	// Telemetry configures the built-in telemetry policy behavior.
 	Telemetry TelemetryOptions
 
+	// Instrumentor configures the built-in request instrumentator.
+	Instrumentor RequestInstrumentor
+
 	// HTTPSender configures the sender of HTTP requests
 	HTTPSender pipeline.Factory
 }
@@ -38,6 +41,7 @@ func NewPipeline(c Credential, o PipelineOptions) pipeline.Pipeline {
 		f = append(f, c)
 	}
 	f = append(f,
+		NewRequestInstrumentPolicyFactory(o.Instrumentor),
 		NewRequestLogPolicyFactory(o.RequestLog),
 		pipeline.MethodFactoryMarker()) // indicates at what stage in the pipeline the method factory is invoked
 
