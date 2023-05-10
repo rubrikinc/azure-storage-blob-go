@@ -10,10 +10,10 @@ import (
 // RequestInstrumentor defines the interface to instrument a request
 type RequestInstrumentor interface {
 	// TODO: Instrument more kinds of operations
-	putBlock(contentLength int64)
-	putBlockList()
-	listBlobs()
-	getBlob()
+	PutBlock(contentLength int64)
+	PutBlockList()
+	ListBlobs()
+	GetBlob()
 }
 
 // NewRequestInstrumentPolicyFactory creates a factory that can create
@@ -40,11 +40,11 @@ func NewRequestInstrumentPolicyFactory(instrumentor RequestInstrumentor) pipelin
 						// https://.../mycontainer/myblob?comp=block&blockid=id
 						isBlock := strings.Contains(request.URL.RawQuery, "blockid")
 						if isBlock {
-							instrumentor.putBlock(request.ContentLength)
+							instrumentor.PutBlock(request.ContentLength)
 						} else {
 							isBlockList := strings.Contains(request.URL.RawQuery, "blocklist")
 							if isBlockList {
-								instrumentor.putBlockList()
+								instrumentor.PutBlockList()
 							}
 						}
 					} else if isGet {
@@ -60,9 +60,9 @@ func NewRequestInstrumentPolicyFactory(instrumentor RequestInstrumentor) pipelin
 						// https://.../mycontainer/myblob
 						isGetBlob := !hasRestype && !hasComp
 						if isListBlobs {
-							instrumentor.listBlobs()
+							instrumentor.ListBlobs()
 						} else if isGetBlob {
-							instrumentor.getBlob()
+							instrumentor.GetBlob()
 						}
 					}
 				}
