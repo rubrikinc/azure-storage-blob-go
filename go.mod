@@ -1,4 +1,4 @@
-module github.com/arijit91/azure-storage-blob-go
+module github.com/rubrikinc/azure-storage-blob-go
 
 go 1.15
 
