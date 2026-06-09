@@ -89,12 +89,29 @@ func (bb BlockBlobURL) Upload(ctx context.Context, body io.ReadSeeker, h BlobHTT
 // StageBlock uploads the specified block to the block blob's "staging area" to be later committed by a call to CommitBlockList.
 // Note that the http client closes the body stream after the request is sent to the service.
 // For more information, see https://docs.microsoft.com/rest/api/storageservices/put-block.
+//
+// Equivalent to calling StageBlockWithChecksums with transactionalCRC64 = nil.
+// Retained for backwards compatibility with callers that only send a
+// Content-MD5 header (or no transport-integrity verification at all).
 func (bb BlockBlobURL) StageBlock(ctx context.Context, base64BlockID string, body io.ReadSeeker, ac LeaseAccessConditions, transactionalMD5 []byte, cpk ClientProvidedKeyOptions) (*BlockBlobStageBlockResponse, error) {
+	return bb.StageBlockWithChecksums(ctx, base64BlockID, body, ac, transactionalMD5, nil, cpk)
+}
+
+// StageBlockWithChecksums uploads the specified block, optionally carrying
+// a Content-MD5 (transactionalMD5) and/or x-ms-content-crc64
+// (transactionalCRC64) header for server-side transport-integrity
+// verification. Either or both may be nil. CRC64 uses the CRC-64/NVME
+// polynomial expected by Azure Blob Storage. Behavior with both nil is
+// identical to StageBlock with a nil MD5.
+//
+// Exposes the existing CRC64 support in the generated client (see
+// zz_generated_block_blob.go:stageBlockPreparer).
+func (bb BlockBlobURL) StageBlockWithChecksums(ctx context.Context, base64BlockID string, body io.ReadSeeker, ac LeaseAccessConditions, transactionalMD5 []byte, transactionalCRC64 []byte, cpk ClientProvidedKeyOptions) (*BlockBlobStageBlockResponse, error) {
 	count, err := validateSeekableStreamAt0AndGetCount(body)
 	if err != nil {
 		return nil, err
 	}
-	return bb.bbClient.StageBlock(ctx, base64BlockID, count, body, transactionalMD5, nil, nil, ac.pointers(),
+	return bb.bbClient.StageBlock(ctx, base64BlockID, count, body, transactionalMD5, transactionalCRC64, nil, ac.pointers(),
 		cpk.EncryptionKey, cpk.EncryptionKeySha256, cpk.EncryptionAlgorithm, // CPK-V
 		cpk.EncryptionScope, // CPK-N
 		nil)
